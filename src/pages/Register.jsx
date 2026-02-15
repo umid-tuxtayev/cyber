@@ -60,7 +60,7 @@ export default function Register() {
                   <input
                     id="fullName"
                     type="text"
-                    placeholder="Umid Tuxtayev"
+                    placeholder="Jony Smith"
                     value={formData.fullName}
                     onChange={(e) => handleInputChange("fullName", e.target.value)}
                     className="w-full pl-12 h-14 text-lg border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-gray-50/50 focus:bg-white"
