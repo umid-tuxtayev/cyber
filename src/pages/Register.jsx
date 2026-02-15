@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { User, Lock, Eye, EyeOff } from "lucide-react"
-import { authRegister } from "../services/authApi"
+import { authRegister, authResendVerification } from "../services/authApi"
 
 export default function Register() {
   const navigate = useNavigate()
@@ -28,12 +28,13 @@ export default function Register() {
     setSuccess(null)
 
     try {
-      await authRegister(formData)
-      setSuccess("Registration successful. Verify code was sent to your email.")
-      const email = formData.email
+      const email = formData.email.trim().toLowerCase()
+      await authRegister({ ...formData, email })
       localStorage.setItem("pending_verify_email", email)
       setFormData({ fullName: "", email: "", password: "" })
-      setTimeout(() => navigate("/verify-email", { state: { email } }), 700)
+
+      authResendVerification({ email }).catch(() => null)
+      navigate("/verify-email", { state: { email }, replace: true })
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.")
     } finally {
