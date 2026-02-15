@@ -1,7 +1,7 @@
 import axios from "axios";
 import { authRefresh, extractAccessToken } from "./authApi";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+const baseURL = import.meta.env.VITE_API_BASE_URL || "https://cyber-ecommerce-backend-szwn.onrender.com";
 
 export const api = axios.create({
   baseURL,
