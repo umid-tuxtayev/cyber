@@ -1,21 +1,35 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 const LikeContext = createContext();
+const LIKES_STORAGE_KEY = "likedItems";
+
+const readLikedItems = () => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const stored = localStorage.getItem(LIKES_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
 
 export const LikeProvider = ({ children }) => {
-  const [likedItems, setLikedItems] = useState(() => {
-    const stored = localStorage.getItem("likedItems");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [likedItems, setLikedItems] = useState(readLikedItems);
 
   useEffect(() => {
-    localStorage.setItem("likedItems", JSON.stringify(likedItems));
+    try {
+      localStorage.setItem(LIKES_STORAGE_KEY, JSON.stringify(likedItems));
+    } catch {
+      // ignore storage write failures
+    }
   }, [likedItems]);
 
   const addToLikes = (item) => {
-    if (!likedItems.some((liked) => liked.id === item.id)) {
-      setLikedItems((prev) => [...prev, item]);
-    }
+    setLikedItems((prev) => {
+      if (prev.some((liked) => liked.id === item.id)) return prev;
+      return [...prev, item];
+    });
   };
 
   const removeFromLikes = (id) => {

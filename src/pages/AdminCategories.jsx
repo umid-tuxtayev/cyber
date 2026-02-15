@@ -6,6 +6,7 @@ import {
   fetchCategories,
   updateCategory,
 } from "../services/categoryApi";
+import { toast } from "react-toastify";
 
 const initialForm = {
   name: "",
@@ -30,11 +31,13 @@ const AdminCategories = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
       resetForm();
+      toast.success("Kategoriya yaratildi");
     },
     onError: (error) => {
-      setErrorMessage(
-        error?.response?.data?.message || "Kategoriya yaratishda xatolik"
-      );
+      const message =
+        error?.response?.data?.message || "Kategoriya yaratishda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -43,11 +46,13 @@ const AdminCategories = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
       resetForm();
+      toast.success("Kategoriya yangilandi");
     },
     onError: (error) => {
-      setErrorMessage(
-        error?.response?.data?.message || "Kategoriya yangilashda xatolik"
-      );
+      const message =
+        error?.response?.data?.message || "Kategoriya yangilashda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -55,11 +60,13 @@ const AdminCategories = () => {
     mutationFn: deleteCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
+      toast.success("Kategoriya o'chirildi");
     },
     onError: (error) => {
-      setErrorMessage(
-        error?.response?.data?.message || "Kategoriya o'chirishda xatolik"
-      );
+      const message =
+        error?.response?.data?.message || "Kategoriya o'chirishda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -90,7 +97,9 @@ const AdminCategories = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.slug.trim()) {
-      setErrorMessage("name va slug majburiy");
+      const message = "name va slug majburiy";
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
 

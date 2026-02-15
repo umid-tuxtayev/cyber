@@ -8,6 +8,7 @@ import {
   updateProduct,
 } from "../services/api";
 import { fetchBrands } from "../services/brandApi";
+import { toast } from "react-toastify";
 
 const initialForm = {
   name: "",
@@ -55,9 +56,12 @@ const AdminProducts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       resetForm();
+      toast.success("Mahsulot yaratildi");
     },
     onError: (error) => {
-      setErrorMessage(error?.response?.data?.message || "Mahsulot yaratishda xatolik");
+      const message = error?.response?.data?.message || "Mahsulot yaratishda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -66,9 +70,12 @@ const AdminProducts = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       resetForm();
+      toast.success("Mahsulot yangilandi");
     },
     onError: (error) => {
-      setErrorMessage(error?.response?.data?.message || "Mahsulot yangilashda xatolik");
+      const message = error?.response?.data?.message || "Mahsulot yangilashda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -76,9 +83,12 @@ const AdminProducts = () => {
     mutationFn: deleteProduct,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      toast.success("Mahsulot o'chirildi");
     },
     onError: (error) => {
-      setErrorMessage(error?.response?.data?.message || "Mahsulot o'chirishda xatolik");
+      const message = error?.response?.data?.message || "Mahsulot o'chirishda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -103,7 +113,9 @@ const AdminProducts = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name || !form.slug || !form.sku || !form.price || !form.categoryId) {
-      setErrorMessage("name, slug, sku, price, categoryId majburiy");
+      const message = "name, slug, sku, price, categoryId majburiy";
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
 

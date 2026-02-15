@@ -1,24 +1,27 @@
 import {
+  Heart,
   SlidersHorizontal,
   X
 } from "lucide-react";
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getProducts, getProductsCategory } from "../services/api";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Slider } from "@mui/material";
 import { ThemeContext } from "../context/ThemeContext";
+import { useLikes } from "../context/LikeContext";
 
 function valuetext(value) {
-  return `${value}°C`;
+  return `$${value}`;
 }
 
 const ShopPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [value, setValue] = useState([0, 300]);
+  const [value, setValue] = useState([0, 100]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const navigate = useNavigate();
   const { isDarkMode } = useContext(ThemeContext);
+  const { likedItems, addToLikes, removeFromLikes } = useLikes();
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -42,12 +45,30 @@ const ShopPage = () => {
     queryFn: getProductsCategory
   });
 
-  const filteredProducts = (allProducts.products || []).filter((p) => {
-    const inCategory = selectedCategory
-      ? p.category?.slug === selectedCategory
-      : true;
+  const baseProducts = allProducts.products || [];
+
+  const categoryProducts = useMemo(() => {
+    if (!selectedCategory) return baseProducts;
+    return baseProducts.filter((p) => p.category?.slug === selectedCategory);
+  }, [baseProducts, selectedCategory]);
+
+  const [priceMin, priceMax] = useMemo(() => {
+    const prices = categoryProducts
+      .map((p) => Number(p.price))
+      .filter((price) => Number.isFinite(price));
+
+    if (!prices.length) return [0, 100];
+
+    return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
+  }, [categoryProducts]);
+
+  useEffect(() => {
+    setValue([priceMin, priceMax]);
+  }, [priceMin, priceMax]);
+
+  const filteredProducts = categoryProducts.filter((p) => {
     const inPrice = Number(p.price) >= value[0] && Number(p.price) <= value[1];
-    return inCategory && inPrice;
+    return inPrice;
   });
 
   const renderStars = (rating) => {
@@ -73,6 +94,31 @@ const ShopPage = () => {
         </span>
       );
     return stars;
+  };
+
+  const hasCompareAtPrice = (product) =>
+    product?.compareAtPrice !== null &&
+    product?.compareAtPrice !== undefined &&
+    product?.compareAtPrice !== "";
+
+  const isLiked = (id) => likedItems.some((item) => item.id === id);
+
+  const toggleLike = (event, product) => {
+    event.stopPropagation();
+    const liked = isLiked(product.id);
+
+    if (liked) {
+      removeFromLikes(product.id);
+      return;
+    }
+
+    addToLikes({
+      id: product.id,
+      title: product.name || product.title,
+      name: product.name || product.title,
+      price: Number(product.price || 0),
+      image: product.thumbnail || product.images?.[0] || "/placeholder.svg",
+    });
   };
 
   const FilterSidebar = ({ isMobile = false }) => (
@@ -132,6 +178,8 @@ const ShopPage = () => {
           <div className="dark:text-white">
             <Slider
               getAriaLabel={() => "Price range"}
+              min={priceMin}
+              max={priceMax}
               value={value}
               onChange={handleChange}
               valueLabelDisplay="auto"
@@ -182,8 +230,25 @@ const ShopPage = () => {
                 <div
                   onClick={() => navigate(`/product/${product.id}`)}
                   key={product.id}
-                  className="group cursor-pointer"
+                  className="group cursor-pointer relative bg-[#F6F6F6] dark:bg-gray-800 rounded-xl p-3"
                 >
+                  <button
+                    type="button"
+                    onClick={(event) => toggleLike(event, product)}
+                    className={`absolute right-3 top-3 z-10 rounded-full p-1.5 transition ${
+                      isLiked(product.id)
+                        ? "text-red-500 bg-red-50"
+                        : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+                    }`}
+                    aria-label="Toggle like"
+                  >
+                    <Heart
+                      className={`h-5 w-5 ${
+                        isLiked(product.id) ? "fill-red-500" : "fill-none"
+                      }`}
+                    />
+                  </button>
+
                   <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-4">
                     <img
                       src={product.thumbnail || "/placeholder.svg"}
@@ -203,6 +268,11 @@ const ShopPage = () => {
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className="font-bold">${product.price}</span>
+                      {hasCompareAtPrice(product) && (
+                        <span className="text-sm text-gray-500 line-through dark:text-gray-400">
+                          ${Number(product.compareAtPrice || 0)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -25,9 +25,10 @@ const ProductDetail = () => {
     } else {
       addToLikes({
         id: data.id,
-        title: data.title,
-        price: data.price,
-        image: activeImage,
+        title: data.title || data.name,
+        name: data.name || data.title,
+        price: Number(data.price || 0),
+        image: activeImage || data.thumbnail || data.images?.[0] || "/placeholder.svg",
       });
     }
   };

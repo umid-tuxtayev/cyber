@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import Header from "../components/Header";
 import { useQuery } from "@tanstack/react-query";
 import { getProducts } from "../services/api";
@@ -14,6 +14,7 @@ import AppleShowcase from "../components/AppleShowcase";
 import CategorySlider from "../components/CategorySlider";
 import ProductShowcase from "../components/product-showcase";
 import { motion } from "framer-motion";
+import { useLikes } from "../context/LikeContext";
 
 const Home = () => {
   const [limit, setLimit] = useState(10);
@@ -22,6 +23,7 @@ const Home = () => {
   const [language, setLanguage] = useState(
     () => localStorage.getItem("language") || "en"
   );
+  const { likedItems, addToLikes, removeFromLikes } = useLikes();
 
   const navigate = useNavigate();
 
@@ -73,6 +75,31 @@ const Home = () => {
         }`}
       />
     ));
+  };
+
+  const hasCompareAtPrice = (product) =>
+    product?.compareAtPrice !== null &&
+    product?.compareAtPrice !== undefined &&
+    product?.compareAtPrice !== "";
+
+  const isLiked = (id) => likedItems.some((item) => item.id === id);
+
+  const toggleLike = (event, product) => {
+    event.stopPropagation();
+    const liked = isLiked(product.id);
+
+    if (liked) {
+      removeFromLikes(product.id);
+      return;
+    }
+
+    addToLikes({
+      id: product.id,
+      title: product.name || product.title,
+      name: product.name || product.title,
+      price: Number(product.price || 0),
+      image: product.thumbnail || product.images?.[0] || "/placeholder.svg",
+    });
   };
 
   return (
@@ -141,8 +168,25 @@ const Home = () => {
             {products.map((product) => (
               <div
                 key={product.id}
-                className="group dark:border-gray-500 dark:border rounded-[10px] p-6 shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300"
+                className="relative group dark:border-gray-500 dark:border rounded-[10px] p-6 shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 bg-[#F6F6F6] dark:bg-gray-800"
               >
+                <button
+                  type="button"
+                  onClick={(event) => toggleLike(event, product)}
+                  className={`absolute right-4 top-4 z-20 rounded-full p-2 transition ${
+                    isLiked(product.id)
+                      ? "text-red-500 bg-red-50"
+                      : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+                  }`}
+                  aria-label="Toggle like"
+                >
+                  <Heart
+                    className={`h-5 w-5 ${
+                      isLiked(product.id) ? "fill-red-500" : "fill-none"
+                    }`}
+                  />
+                </button>
+
                 <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-4">
                   {product.images && product.images.length > 0 ? (
                     <Swiper
@@ -178,9 +222,9 @@ const Home = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="font-bold text-lg">$ {product.price}</span>
-                  {product.originalPrice && (
+                  {hasCompareAtPrice(product) && (
                     <span className="text-gray-500 line-through dark:text-gray-400">
-                      {product.originalPrice}
+                      ${Number(product.compareAtPrice || 0)}
                     </span>
                   )}
                 </div>

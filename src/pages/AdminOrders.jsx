@@ -5,16 +5,24 @@ import {
   updateOrderStatusAdmin,
 } from "../services/checkoutApi";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const STATUS_OPTIONS = [
   "pending",
-  "paid",
-  "processing",
-  "shipped",
+  "collecting",
+  "on_the_way",
+  "ready_for_pickup",
   "delivered",
-  "cancelled",
-  "refunded",
+  "canceled",
 ];
+
+const normalizeOrderStatus = (status) => {
+  const normalized = String(status || "").trim().toLowerCase();
+
+  if (normalized === "cancelled") return "canceled";
+  if (STATUS_OPTIONS.includes(normalized)) return normalized;
+  return "pending";
+};
 
 const AdminOrders = () => {
   const navigate = useNavigate();
@@ -32,9 +40,12 @@ const AdminOrders = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
       setErrorText("");
+      toast.success("Order status yangilandi");
     },
     onError: (error) => {
-      setErrorText(error?.response?.data?.message || "Status update failed");
+      const message = error?.response?.data?.message || "Status update failed";
+      setErrorText(message);
+      toast.error(message);
     },
   });
 
@@ -51,7 +62,7 @@ const AdminOrders = () => {
   );
 
   const onUpdateStatus = (id, fallbackStatus) => {
-    const status = draftStatus[id] || fallbackStatus || "pending";
+    const status = normalizeOrderStatus(draftStatus[id] || fallbackStatus || "pending");
     updateStatusMutation.mutate({ id, status });
   };
 
@@ -107,7 +118,9 @@ const AdminOrders = () => {
                       </td>
                       <td className="py-2 pr-2">
                         <select
-                          value={draftStatus[order.id] || order.status || "pending"}
+                          value={normalizeOrderStatus(
+                            draftStatus[order.id] || order.status || "pending"
+                          )}
                           onChange={(e) =>
                             setDraftStatus((prev) => ({
                               ...prev,

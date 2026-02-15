@@ -1,17 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react";
-import { ShoppingCart } from "lucide-react";
+import { Heart, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getProducts } from "../services/api";
 import { useCart } from "../context/CartContext";
 import { fetchBrands } from "../services/brandApi";
+import { useLikes } from "../context/LikeContext";
 
 export default function ProductShowcase() {
   const [brands, setBrands] = useState([]);
   const [discountProducts, setDiscountProducts] = useState([]);
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { likedItems, addToLikes, removeFromLikes } = useLikes();
 
   useEffect(() => {
     const bootstrap = async () => {
@@ -27,11 +29,15 @@ export default function ProductShowcase() {
 
         const allProducts = response.products || [];
 
-        const discounted = allProducts.filter(
-          (item) => Number(item.compareAtPrice || 0) > Number(item.price || 0)
+        const hasCompareAtPrice = (item) =>
+          item?.compareAtPrice !== null &&
+          item?.compareAtPrice !== undefined &&
+          item?.compareAtPrice !== "";
+
+        const discountedOnly = allProducts.filter(
+          (item) => hasCompareAtPrice(item)
         );
-        const base = discounted.length ? discounted : allProducts;
-        const shuffled = [...base].sort(() => 0.5 - Math.random());
+        const shuffled = [...discountedOnly].sort(() => 0.5 - Math.random());
         const selectedDiscounts = shuffled.slice(0, 4);
         setDiscountProducts(selectedDiscounts);
       } catch (error) {
@@ -40,6 +46,23 @@ export default function ProductShowcase() {
     };
     bootstrap();
   }, []);
+
+  const isLiked = (productId) => likedItems.some((item) => item.id === productId);
+
+  const toggleLike = (product) => {
+    if (isLiked(product.id)) {
+      removeFromLikes(product.id);
+      return;
+    }
+
+    addToLikes({
+      id: product.id,
+      title: product.name || product.title,
+      name: product.name || product.title,
+      price: Number(product.price || 0),
+      image: product.thumbnail || "/placeholder.svg",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pt-15 dark:bg-gray-900 transition-colors duration-300">
@@ -92,17 +115,35 @@ export default function ProductShowcase() {
           <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Discounts up to -30%</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {discountProducts.length === 0 && (
+            <p className="col-span-full text-center text-gray-500 dark:text-gray-400">
+              Hozircha chegirmadagi mahsulotlar mavjud emas.
+            </p>
+          )}
           {discountProducts.map((product) => (
             <div
               key={product.id}
-              className="bg-white dark:bg-gray-800 text-gray-800 h-[300px] dark:text-white rounded-2xl p-6 shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300"
+              className="relative bg-[#F6F6F6] text-gray-800 h-[300px] rounded-2xl p-6 shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300"
             >
+              <button
+                type="button"
+                onClick={() => toggleLike(product)}
+                className={`absolute right-4 top-4 z-10 rounded-full p-2 transition ${
+                  isLiked(product.id)
+                    ? "text-red-500 bg-red-50"
+                    : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+                }`}
+                aria-label="Toggle like"
+              >
+                <Heart className={`h-5 w-5 ${isLiked(product.id) ? "fill-red-500" : "fill-none"}`} />
+              </button>
+
               <div className="flex flex-col items-center text-center">
                 <img src={product.thumbnail} alt={product.name} className="w-20 h-20 object-contain mb-4" />
                 <h3 className="text-base h-10 font-semibold mb-3">{product.name}</h3>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-xl font-bold text-blue-600">${product.price}</span>
-                  <span className="text-sm line-through text-gray-500 dark:text-gray-400">
+                  <span className="text-sm line-through text-gray-500">
                     ${Math.floor(Number(product.compareAtPrice || product.price) || 0)}
                   </span>
                 </div>
@@ -111,9 +152,9 @@ export default function ProductShowcase() {
                     try {
                       await addToCart({
                         id: product.id,
-                        name: product.name,
+                        name: product.name || product.title,
                         image: product.thumbnail,
-                        price: product.price,
+                        price: Number(product.price || 0),
                         quantity: 1,
                         size: "M",
                         color: "Black",

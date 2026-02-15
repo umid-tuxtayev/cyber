@@ -6,6 +6,7 @@ import {
   fetchBrands,
   updateBrand,
 } from "../services/brandApi";
+import { toast } from "react-toastify";
 
 const initialForm = {
   name: "",
@@ -29,11 +30,12 @@ const AdminBrands = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
       resetForm();
+      toast.success("Brand yaratildi");
     },
     onError: (error) => {
-      setErrorMessage(
-        error?.response?.data?.message || "Brand yaratishda xatolik"
-      );
+      const message = error?.response?.data?.message || "Brand yaratishda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -42,11 +44,12 @@ const AdminBrands = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
       resetForm();
+      toast.success("Brand yangilandi");
     },
     onError: (error) => {
-      setErrorMessage(
-        error?.response?.data?.message || "Brand yangilashda xatolik"
-      );
+      const message = error?.response?.data?.message || "Brand yangilashda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -54,11 +57,12 @@ const AdminBrands = () => {
     mutationFn: deleteBrand,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
+      toast.success("Brand o'chirildi");
     },
     onError: (error) => {
-      setErrorMessage(
-        error?.response?.data?.message || "Brand o'chirishda xatolik"
-      );
+      const message = error?.response?.data?.message || "Brand o'chirishda xatolik";
+      setErrorMessage(message);
+      toast.error(message);
     },
   });
 
@@ -87,12 +91,16 @@ const AdminBrands = () => {
     e.preventDefault();
 
     if (!form.name.trim() || !form.slug.trim()) {
-      setErrorMessage("name va slug majburiy");
+      const message = "name va slug majburiy";
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
 
     if (!editingId && !form.logo) {
-      setErrorMessage("Yangi brand uchun logo file majburiy");
+      const message = "Yangi brand uchun logo file majburiy";
+      setErrorMessage(message);
+      toast.error(message);
       return;
     }
 
