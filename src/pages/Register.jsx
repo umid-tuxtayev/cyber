@@ -1,14 +1,16 @@
 "use client"
 
 import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { User, Lock, Eye, EyeOff } from "lucide-react"
-import { register } from "../api"
+import { authRegister } from "../services/authApi"
 
 export default function Register() {
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
-    username: "",
+    fullName: "",
+    email: "",
     password: "",
   })
   const [loading, setLoading] = useState(false)
@@ -26,12 +28,13 @@ export default function Register() {
     setSuccess(null)
 
     try {
-      const response = await register(formData)
-      setSuccess("Registration successful! You can now log in.")
-      setFormData({ name: "", username: "", password: "" }) 
-      console.log("Register response:", response.data)
+      await authRegister(formData)
+      setSuccess("Registration successful. Verify code was sent to your email.")
+      const email = formData.email
+      localStorage.setItem("pending_verify_email", email)
+      setFormData({ fullName: "", email: "", password: "" })
+      setTimeout(() => navigate("/verify-email", { state: { email } }), 700)
     } catch (err) {
-      console.error("Registration failed:", err.response?.data || err.message)
       setError(err.response?.data?.message || "Registration failed. Please try again.")
     } finally {
       setLoading(false)
@@ -49,17 +52,17 @@ export default function Register() {
           <div className="px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 ml-1">
-                  Name
+                <label htmlFor="fullName" className="block text-sm font-semibold text-gray-700 ml-1">
+                  Full Name
                 </label>
                 <div className="relative group">
                   <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input
-                    id="name"
+                    id="fullName"
                     type="text"
-                    placeholder="Eshmatjon"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    placeholder="Umid Tuxtayev"
+                    value={formData.fullName}
+                    onChange={(e) => handleInputChange("fullName", e.target.value)}
                     className="w-full pl-12 h-14 text-lg border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-gray-50/50 focus:bg-white"
                     required
                   />
@@ -67,17 +70,17 @@ export default function Register() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="username" className="block text-sm font-semibold text-gray-700 ml-1">
-                  Username
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 ml-1">
+                  Email
                 </label>
                 <div className="relative group">
                   <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                   <input
-                    id="username"
-                    type="text"
-                    placeholder="eshmatjon123"
-                    value={formData.username}
-                    onChange={(e) => handleInputChange("username", e.target.value)}
+                    id="email"
+                    type="email"
+                    placeholder="example@mail.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     className="w-full pl-12 h-14 text-lg border-2 border-gray-200 rounded-2xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-gray-50/50 focus:bg-white"
                     required
                   />
@@ -127,12 +130,12 @@ export default function Register() {
           <div className="text-center pb-8 bg-gradient-to-t from-blue-50/30 to-white">
             <p className="text-gray-600 text-base">
               Already have an account?{" "}
-              <a
-                href="/signin"
+              <Link
+                to="/login"
                 className="text-blue-600 hover:text-blue-800 font-semibold hover:underline transition-all"
               >
                 Log In
-              </a>
+              </Link>
             </p>
           </div>
         </div>

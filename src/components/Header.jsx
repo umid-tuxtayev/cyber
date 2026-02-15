@@ -18,6 +18,8 @@ import { ThemeContext } from "../context/ThemeContext";
 import { useContext } from "react";
 import { useLikes } from "../context/LikeContext";
 import ResponsiveSearch from "./ResponsiveSearch";
+import { useAuth } from "../context/AuthContext";
+import { searchProducts } from "../services/api";
 
 const Header = () => {
   const { likedItems } = useLikes();
@@ -36,7 +38,7 @@ const Header = () => {
   const { cartItems } = useCart();
   const totalCount = cartItems.length;
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token")); // <<< Qo‘shildi
+  const { isAuthenticated, isAdmin, logout } = useAuth();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDarkMode);
@@ -61,10 +63,9 @@ const Header = () => {
   }, [isProfileSidebarOpen, isMobileMenuOpen]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false); // <<< Qo‘shildi
+    logout();
     navigate("/");
-    setIsProfileSidebarOpen(false)
+    setIsProfileSidebarOpen(false);
   };
 
   useEffect(() => {
@@ -81,14 +82,8 @@ const Header = () => {
 
     const fetchResults = async () => {
       try {
-        const res = await fetch(
-          `https://dummyjson.com/products/search?q=${encodeURIComponent(
-            query
-          )}`,
-          { signal: controller.signal }
-        );
-        const data = await res.json();
-        setResults(data.products ?? []);
+        const data = await searchProducts(query);
+        setResults(data);
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error(err);
@@ -123,9 +118,9 @@ const Header = () => {
                 <div
                   key={item.id}
                   className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex justify-between"
-                  onClick={() => (window.location.href = `/product/${item.id}`)}
+                  onClick={() => navigate(`/product/${item.id}`)}
                 >
-                  <span className="text-sm">{item.title}</span>
+                  <span className="text-sm">{item.name || item.title}</span>
                   <span className="text-sm font-medium">${item.price}</span>
                 </div>
               ))}
@@ -165,7 +160,7 @@ const Header = () => {
             <ResponsiveSearch />
           </div>
 
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <>
               <NavLink
                 to="/likes"
@@ -279,6 +274,65 @@ const Header = () => {
               >
                 My Profile
               </button>
+              <button
+                onClick={() => {
+                  navigate("/orders");
+                  setIsProfileSidebarOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                My Orders
+              </button>
+
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={() => {
+                      navigate("/admin/dashboard");
+                      setIsProfileSidebarOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Admin Dashboard
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate("/admin/categories");
+                      setIsProfileSidebarOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Admin Categories
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate("/admin/products");
+                      setIsProfileSidebarOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Admin Products
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate("/admin/orders");
+                      setIsProfileSidebarOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Admin Orders
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate("/admin/brands");
+                      setIsProfileSidebarOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    Admin Brands
+                  </button>
+                </>
+              )}
 
               <div className="flex justify-between items-center px-4 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800">
                 <span className="flex items-center gap-2">

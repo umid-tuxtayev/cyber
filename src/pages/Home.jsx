@@ -43,9 +43,20 @@ const Home = () => {
 
   useEffect(() => {
     if (data?.products) {
-      setProducts((prev) => [...prev, ...data.products]);
+      setProducts((prev) => {
+        const base = skip === 0 ? [] : prev;
+        const merged = [...base, ...data.products];
+        const seen = new Set();
+
+        return merged.filter((item) => {
+          const key = item?.id;
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      });
     }
-  }, [data]);
+  }, [data, skip]);
 
   const handleLoadMore = () => {
     setSkip((prevSkip) => prevSkip + limit);
@@ -85,28 +96,28 @@ const Home = () => {
   <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:40px_40px]" />
 
   {/* YOUR ORIGINAL CONTENT */}
-  <div className="container mx-auto px-6 flex flex-col md:flex-row items-center justify-between relative z-10">
-    <div className="max-w-xl">
-      <p className="text-gray-400 font-bold font-inter text-sm mb-2">
-        Pro.Beyond
+  <div className="relative z-10 mx-auto max-w-[1240px] min-h-[520px] px-6 md:px-12 flex flex-col md:flex-row items-center justify-between">
+    <div className="max-w-[620px]">
+      <p className="text-[#8d8a92] font-semibold font-inter text-sm md:text-[34px] leading-none mb-4">
+        Pro.Beyond.
       </p>
-      <h1 className="text-4xl md:text-6xl font-semiboldj font-inter leading-tight mb-4">
-        <span className="font-inter">Iphone 14 </span>{" "}
+      <h1 className="text-[48px] md:text-[86px] lg:text-[96px] font-light font-inter leading-[0.9] tracking-[-0.02em] mb-5">
+        <span className="font-inter">IPhone 14 </span>{" "}
         <span className="text-white font-bold">Pro</span>
       </h1>
-      <p className="text-gray-400 text-lg mb-6">
-        Created to change everything for the better. For everyone.
+      <p className="text-[#8e8b92] text-xs md:text-[20px] leading-[1.2] mb-8">
+        Created to change everything for the better. For everyone
       </p>
       <Link
         to={"/shop"}
-        className="border border-white text-white px-6 py-3 rounded-md hover:bg-white hover:text-black transition"
+        className="inline-flex items-center justify-center w-[130px] h-[44px] border border-[#9f9ca5] text-white text-sm md:text-base rounded-md hover:bg-white hover:text-black transition"
       >
         Shop Now
       </Link>
     </div>
-    <div className="relative mt-10 md:mt-0">
+    <div className="relative mt-12 md:mt-0 self-end">
       <motion.div
-        className="absolute -top-10 -left-10 w-72 h-72 bg-pink-500 blur-3xl rounded-full"
+        className="absolute top-18 -left-8 w-72 h-72 bg-pink-500 blur-3xl rounded-full"
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.3 }}
         transition={{ duration: 1.5 }}
@@ -114,7 +125,7 @@ const Home = () => {
       <img
         src={iphone}
         alt="iPhone"
-        className="relative w-[280px] md:w-[360px] object-cover z-10"
+        className="relative z-10 w-[300px] md:w-[420px] lg:w-[470px] object-contain md:translate-y-4 lg:translate-y-8"
       />
     </div>
   </div>

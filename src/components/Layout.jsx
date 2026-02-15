@@ -6,7 +6,13 @@ import { Outlet, useLocation } from 'react-router-dom'
 const Layout = () => {
   const { pathname } = useLocation()
 
-  const hideLayout = ["/login", "/register"].includes(pathname)
+  const hideLayout = [
+    "/login",
+    "/register",
+    "/verify-email",
+    "/forgot-password",
+    "/reset-password",
+  ].includes(pathname)
 
   return (
     <div className='dark:bg-gray-900'>

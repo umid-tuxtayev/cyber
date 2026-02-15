@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export default function ContactPage() {
   const [form, setForm] = useState({ name: "", email: "", message: "" });
@@ -13,7 +14,7 @@ export default function ContactPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Xabar yuborildi! ✅");
+    toast.success("Xabar yuborildi.");
     setForm({ name: "", email: "", message: "" });
   };
 

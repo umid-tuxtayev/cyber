@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { searchProducts } from "../services/api";
 
 const ResponsiveSearch = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
+  const navigate = useNavigate();
   const inputRef = useRef();
   const controllerRef = useRef();
 
@@ -30,12 +33,8 @@ const ResponsiveSearch = () => {
 
     const fetchResults = async () => {
       try {
-        const res = await fetch(
-          `https://dummyjson.com/products/search?q=${encodeURIComponent(query)}`,
-          { signal: controller.signal }
-        );
-        const data = await res.json();
-        setResults(data.products ?? []);
+        const data = await searchProducts(query);
+        setResults(data);
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error(err);
@@ -80,9 +79,9 @@ const ResponsiveSearch = () => {
             <div
               key={item.id}
               className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer flex justify-between"
-              onClick={() => window.location.href = `/product/${item.id}`}
+              onClick={() => navigate(`/product/${item.id}`)}
             >
-              <span className="text-sm">{item.title}</span>
+              <span className="text-sm">{item.name || item.title}</span>
               <span className="text-sm font-medium">${item.price}</span>
             </div>
           ))}

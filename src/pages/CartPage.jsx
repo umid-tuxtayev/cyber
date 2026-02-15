@@ -63,10 +63,10 @@ const CartPage = () => {
                         </h3>
                         <div className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
                           <div>
-                            Size: <span className="text-black dark:text-white">{item.size}</span>
+                            Size: <span className="text-black dark:text-white">{item.size || "-"}</span>
                           </div>
                           <div>
-                            Color: <span className="text-black dark:text-white">{item.color}</span>
+                            Color: <span className="text-black dark:text-white">{item.color || "-"}</span>
                           </div>
                         </div>
                       </div>
@@ -144,7 +144,7 @@ const CartPage = () => {
                   </button>
                 </div>
 
-                <button onClick={() => navigate('/order')} className="w-full bg-black text-white py-4 rounded-lg font-medium hover:bg-gray-800 text-lg">
+                <button onClick={() => navigate('/checkout/address')} className="w-full bg-black text-white py-4 rounded-lg font-medium hover:bg-gray-800 text-lg">
                   Go to Checkout →
                 </button>
               </div>

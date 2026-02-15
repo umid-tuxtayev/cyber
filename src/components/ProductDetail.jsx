@@ -3,6 +3,7 @@ import { NavLink, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getSingleProduct } from "../services/api";
 import { Star, Heart } from "lucide-react";
+import { toast } from "react-toastify";
 import Header from "./Header";
 import { useCart } from "../context/CartContext";
 import ProductSpecs from "./Product-specs";
@@ -39,28 +40,19 @@ const ProductDetail = () => {
 
   const handleAdd = async () => {
     try {
-      const res = await fetch("https://dummyjson.com/carts/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: 1,
-          products: [{ id: data.id, quantity: 1 }],
-        }),
-      });
-      await res.json();
-      addToCart({
+      await addToCart({
         id: data.id,
-        name: data.title,
+        name: data.name || data.title,
         price: data.price,
         image: activeImage,
-        quantity: 1,
+        quantity,
         size: "Default",
         color: "Default",
       });
-      alert("✅ Mahsulot savatchaga qo‘shildi!");
+      toast.success("Mahsulot savatchaga qo'shildi.");
     } catch (err) {
       console.error(err);
-      alert("❌ Xato — mahsulot qo‘shilmadi.");
+      toast.error("Xato: mahsulot qo'shilmadi.");
     }
   };
 
@@ -203,9 +195,9 @@ const ProductDetail = () => {
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="flex flex-col lg:flex-row gap-4">
-            {data.images.length > 1 && (
+            {(data.images || []).length > 1 && (
               <div className="flex lg:flex-col gap-3 max-h-[500px] overflow-y-auto">
-                {data.images.map((img, i) => (
+                {(data.images || []).map((img, i) => (
                   <img
                     key={i}
                     src={img}
@@ -231,7 +223,7 @@ const ProductDetail = () => {
             </div>
           </div>
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold">{data.title}</h1>
+            <h1 className="text-3xl font-bold">{data.name || data.title}</h1>
             <p className="text-gray-600 dark:text-gray-300">
               {data.description}
             </p>
@@ -244,7 +236,7 @@ const ProductDetail = () => {
                 />
               ))}
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                4.5/5
+                {Number(data.ratingAverage || data.rating || 0)}/5
               </span>
             </div>
 

@@ -1,19 +1,13 @@
 import {
   SlidersHorizontal,
-  ChevronDown,
   X
 } from "lucide-react";
 import React, { useState, useContext, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { api, getProductsCategory } from "../services/api";
+import { getProducts, getProductsCategory } from "../services/api";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Slider } from "@mui/material";
 import { ThemeContext } from "../context/ThemeContext";
-
-const getProducts = async () => {
-  const res = await api.get("/products?limit=100");
-  return res.data.products;
-};
 
 function valuetext(value) {
   return `${value}°C`;
@@ -39,7 +33,7 @@ const ShopPage = () => {
     isLoading,
     isError
   } = useQuery({
-    queryKey: ["products"],
+    queryKey: ["products", { limit: 100, skip: 0 }],
     queryFn: getProducts
   });
 
@@ -48,11 +42,11 @@ const ShopPage = () => {
     queryFn: getProductsCategory
   });
 
-  const filteredProducts = allProducts.filter((p) => {
+  const filteredProducts = (allProducts.products || []).filter((p) => {
     const inCategory = selectedCategory
-      ? p.category?.toLowerCase().includes(selectedCategory.toLowerCase())
+      ? p.category?.slug === selectedCategory
       : true;
-    const inPrice = p.price >= value[0] && p.price <= value[1];
+    const inPrice = Number(p.price) >= value[0] && Number(p.price) <= value[1];
     return inCategory && inPrice;
   });
 
@@ -106,13 +100,13 @@ const ShopPage = () => {
           <div className="space-y-2">
             {categories.map((cat) => (
               <label
-                key={cat.name}
+                key={cat.id || cat.slug || cat.name}
                 className="flex items-center space-x-2 cursor-pointer"
               >
                 <input
                   type="radio"
                   name="category"
-                  value={cat}
+                  value={cat.slug}
                   checked={selectedCategory === cat.slug}
                   onChange={() => setSelectedCategory(cat.slug)}
                 />
@@ -193,18 +187,18 @@ const ShopPage = () => {
                   <div className="aspect-square bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mb-4">
                     <img
                       src={product.thumbnail || "/placeholder.svg"}
-                      alt={product.title}
+                      alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   </div>
                   <div className="space-y-2">
                     <h3 className="font-medium text-sm md:text-base">
-                      {product.title}
+                      {product.name}
                     </h3>
                     <div className="flex items-center space-x-1">
-                      {renderStars(product.rating)}
+                      {renderStars(Number(product.ratingAverage || product.rating || 0))}
                       <span className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                        {product.rating}/5
+                        {Number(product.ratingAverage || product.rating || 0)}/5
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">

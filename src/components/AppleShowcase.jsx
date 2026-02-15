@@ -7,54 +7,72 @@ import { Link } from "react-router-dom";
 
 const AppleShowcase = () => {
   return (
-    <section className="bg-white dark:bg-gray-900 text-black dark:text-white">
-      <div className="max-w-7xl mx-auto grid md:grid-cols-2 ">
-        <div className="grid grid-rows-2">
-          <Link to={'/shop'} className="bg-gray-[#FFFFFF] relative dark:bg-gray-600 flex flex-col md:flex-row items-center p-6 gap-6">
-            <div className="w-32 md:w-40">
-              <img
-                src={ps5}
-                alt="Playstation 5"
-                className="w-32 absolute left-0 top-10 md:w-40 object-contain"
-              />
-            </div>
-            <div className="relative">
-              <h2 className="text-2xl font-semibold mb-2">Playstation 5</h2>
-              <p className="text-gray-600 dark:text-gray-300 text-sm">
+    <section className="bg-[#ededed] dark:bg-gray-900 text-black dark:text-white">
+      <div className="mx-auto max-w-[1240px] grid grid-cols-1 md:grid-cols-2">
+        <div className="grid grid-rows-[1.08fr_0.92fr]">
+          <Link
+            to="/shop"
+            className="relative bg-[#f6f6f6] dark:bg-gray-700 min-h-[250px] md:min-h-[285px] overflow-hidden flex items-center pl-[120px] md:pl-[180px] pr-6 md:pr-10"
+          >
+            <img
+              src={ps5}
+              alt="Playstation 5"
+              className="absolute left-[-44px] bottom-0 w-[180px] md:w-[220px] object-contain"
+            />
+            <div className="relative z-10">
+              <h2 className="text-[clamp(2rem,3vw,3.2rem)] font-semibold leading-[1.02] mb-3">
+                Playstation 5
+              </h2>
+              <p className="text-[#7e7e7e] dark:text-gray-300 text-xs md:text-sm leading-5 max-w-[360px]">
                 Incredibly powerful CPUs, GPUs, and an SSD with integrated I/O
                 will redefine your PlayStation experience.
               </p>
             </div>
           </Link>
-          <div className="grid grid-cols-2 h-full">
-            <Link to={'/shop'} className="bg-[#EDEDED] relative dark:bg-gray-800 p-4 flex flex-col justify-between">
-              <div className="w-32 md:w-40">
-                <img
-                  src={airpods}
-                  alt="AirPods Max"
-                  className="w-32 z-[0] h-32 absolute left-0 top-0 md:w-40 object-bottom-left object-contain"
-                />
-              </div>
-              <div className="relative">
-                <h3 className="mt-2 z-10">Apple</h3>
-                <h3 className="mt-2">AirPods</h3>
-                <h3 className="font-semibold mt-2">Max</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-300">
+
+          <div className="grid grid-cols-2">
+            <Link
+              to="/shop"
+              className="relative bg-[#ededed] dark:bg-gray-800 min-h-[210px] p-4 md:p-5 overflow-hidden"
+            >
+              <img
+                src={airpods}
+                alt="AirPods Max"
+                className="absolute left-[-30px] top-0 w-[110px] md:w-[132px] object-contain"
+              />
+              <div className="relative z-10 mt-[72px] md:mt-[86px] pl-12 md:pl-24">
+                <h3 className="text-[clamp(1.2rem,1.8vw,2.1rem)] leading-none">
+                  Apple
+                </h3>
+                <h3 className="text-[clamp(1.2rem,1.8vw,2.1rem)] leading-none">
+                  AirPods
+                </h3>
+                <h3 className="text-[clamp(1.2rem,1.8vw,2.1rem)] leading-none font-semibold mb-2">
+                  Max
+                </h3>
+                <p className="text-[11px] md:text-xs leading-5 text-[#7e7e7e] dark:text-gray-300 max-w-[220px]">
                   Computational audio. Listen, it’s powerful.
                 </p>
               </div>
             </Link>
-            <Link to={'/shop'} className="bg-[#353535] relative text-white p-4 flex flex-col justify-between">
-              <div className="w-full">
-                <img
-                  src={visionpro}
-                  alt="Vision Pro"
-                  className="w-ful absolute z-0 left-0 h-28 object-contain"
-                />
-              </div>
-              <div className="relative">
-                <h3 className="font-semibold mt-2">Apple Vision Pro</h3>
-                <p className="text-sm text-gray-300">
+
+            <Link
+              to="/shop"
+              className="relative bg-[#353535] text-white min-h-[220px] p-4 md:p-5 overflow-hidden"
+            >
+              <img
+                src={visionpro}
+                alt="Vision Pro"
+                className="absolute left-[-30px] top-2 w-[110px] md:w-[132px] object-contain"
+              />
+              <div className="relative z-10 mt-[72px] md:mt-[86px] pl-12 md:pl-24">
+                <h3 className="text-[clamp(1.2rem,1.8vw,2.1rem)] leading-none">
+                  Apple
+                </h3>
+                <h3 className="text-[clamp(1.2rem,1.8vw,2.1rem)] leading-none font-semibold mb-2">
+                  Vision Pro
+                </h3>
+                <p className="text-[11px] md:text-xs leading-5 text-gray-300 max-w-[220px]">
                   An immersive way to experience entertainment
                 </p>
               </div>
@@ -62,27 +80,31 @@ const AppleShowcase = () => {
           </div>
         </div>
 
-        <div className="bg-[#EDEDED] relative h-110 dark:bg-gray-700 flex flex-col md:flex-row items-center justify-between p-6">
-          <div className="max-w-sm relative">
-            <h2 className="text-3xl font-light">Macbook</h2>
-            <h2 className="font-bold text-3xl">Air</h2>
-            <p className="text-gray-600 mb-15 z-10 relative dark:text-gray-300 text-sm mt-2">
+        <Link
+          to="/shop"
+          className="relative bg-[#ededed] dark:bg-gray-700 min-h-[420px] md:min-h-[495px] flex items-center px-6 md:px-8 lg:px-10 overflow-hidden"
+        >
+          <div className="max-w-[340px] relative z-10">
+            <h2 className="text-[clamp(2.4rem,4vw,4.2rem)] font-light leading-none">
+              Macbook
+            </h2>
+            <h2 className="text-[clamp(2.4rem,4vw,4.2rem)] font-bold leading-none mb-4">
+              Air
+            </h2>
+            <p className="text-[#7e7e7e] dark:text-gray-300 text-xs md:text-sm leading-6 mb-8 max-w-[330px]">
               The new 15‑inch MacBook Air makes room for more of what you love
               with a spacious Liquid Retina display.
             </p>
-            <Link
-              to={"shop"}
-              className="mt-4 px-4 py-2 border border-black dark:border-white rounded hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition"
-            >
+            <span className="inline-flex px-8 py-2 border border-black dark:border-white rounded text-xs md:text-sm">
               Shop Now
-            </Link>
+            </span>
           </div>
           <img
             src={macbook}
             alt="MacBook Air"
-            className="w-40 absolute z-0 h-70 right-0 md:w-52 mt-6 md:mt-0"
+            className="absolute right-[-6px] md:right-[-12px] bottom-0 h-[86%] max-h-[470px] w-auto object-contain"
           />
-        </div>
+        </Link>
       </div>
     </section>
   );
