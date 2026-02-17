@@ -5,6 +5,35 @@ import { Link, useNavigate } from "react-router-dom"
 import { User, Lock, Eye, EyeOff } from "lucide-react"
 import { authRegister, authResendVerification } from "../services/authApi"
 
+const isEmailExistsError = (err) => {
+  const statusCode = err?.response?.status
+  const responseData = err?.response?.data
+  const blob = [
+    err?.message,
+    responseData?.message,
+    responseData?.error,
+    Array.isArray(responseData?.errors) ? responseData.errors.join(" ") : "",
+    typeof responseData === "string" ? responseData : "",
+    JSON.stringify(responseData || ""),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+
+  if (statusCode === 409) return true
+
+  return (
+    blob.includes("email already exists") ||
+    blob.includes("already exists") ||
+    blob.includes("already exist") ||
+    blob.includes("already existz") ||
+    blob.includes("email exists") ||
+    blob.includes("email exist") ||
+    blob.includes("duplicate") ||
+    blob.includes("taken")
+  )
+}
+
 export default function Register() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
@@ -13,9 +42,8 @@ export default function Register() {
     email: "",
     password: "",
   })
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -25,21 +53,49 @@ export default function Register() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-    setSuccess(null)
 
-    try {
-      const email = formData.email.trim().toLowerCase()
-      await authRegister({ ...formData, email })
-      localStorage.setItem("pending_verify_email", email)
-      setFormData({ fullName: "", email: "", password: "" })
-
-      authResendVerification({ email }).catch(() => null)
-      navigate("/verify-email", { state: { email }, replace: true })
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed. Please try again.")
-    } finally {
-      setLoading(false)
+    const payload = {
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim().toLowerCase(),
+      password: formData.password,
     }
+
+    if (!payload.fullName || !payload.email || !payload.password) {
+      setError("All fields are required.")
+      setLoading(false)
+      return
+    }
+
+    localStorage.setItem("pending_verify_email", payload.email)
+    localStorage.setItem("pending_register_status", "processing")
+    localStorage.removeItem("pending_register_error")
+    navigate("/verify-email", { state: { email: payload.email }, replace: true })
+
+    authRegister(payload)
+      .then(() => authResendVerification({ email: payload.email }))
+      .then(() => {
+        localStorage.setItem("pending_register_status", "otp_sent")
+        localStorage.removeItem("pending_register_error")
+      })
+      .catch((err) => {
+        if (isEmailExistsError(err)) {
+          localStorage.setItem("pending_register_status", "email_exists")
+          localStorage.setItem(
+            "pending_register_error",
+            err.response?.data?.message || "Email already exists."
+          )
+          return
+        }
+
+        localStorage.setItem("pending_register_status", "failed")
+        localStorage.setItem(
+          "pending_register_error",
+          err.response?.data?.message || "Registration failed. Please try again."
+        )
+      })
+      .finally(() => {
+        setLoading(false)
+      })
   }
 
   return (
@@ -124,7 +180,6 @@ export default function Register() {
               </button>
 
               {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
-              {success && <p className="text-green-500 mt-2 text-center">{success}</p>}
             </form>
           </div>
 

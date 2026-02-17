@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { authResendVerification, authVerifyEmail } from "../services/authApi";
@@ -12,12 +12,54 @@ const VerifyEmail = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    const syncRegisterStatus = () => {
+      const status = localStorage.getItem("pending_register_status");
+      const registerError = localStorage.getItem("pending_register_error");
+      const pendingEmail = localStorage.getItem("pending_verify_email") || email;
+
+      if (status === "email_exists") {
+        localStorage.removeItem("pending_register_status");
+        localStorage.removeItem("pending_register_error");
+        localStorage.removeItem("pending_verify_email");
+        navigate("/login", { state: { email: pendingEmail }, replace: true });
+        return;
+      }
+
+      if (status === "failed") {
+        setMessage("");
+        setError(registerError || "Registration failed. Please try registering again.");
+        return;
+      }
+
+      if (status === "processing") {
+        setError("");
+        setMessage("Account yaratilmoqda, OTP emailga yuborilmoqda...");
+        return;
+      }
+
+      if (status === "otp_sent") {
+        setError("");
+        setMessage("OTP code sent. Please check your email.");
+      }
+    };
+
+    syncRegisterStatus();
+    const intervalId = window.setInterval(syncRegisterStatus, 800);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [email, navigate]);
+
   const verifyMutation = useMutation({
     mutationFn: authVerifyEmail,
     onSuccess: () => {
       setError("");
       setMessage("Email verified. You can log in now.");
       localStorage.removeItem("pending_verify_email");
+      localStorage.removeItem("pending_register_status");
+      localStorage.removeItem("pending_register_error");
       setTimeout(() => navigate("/login"), 600);
     },
     onError: (err) => {
@@ -31,10 +73,17 @@ const VerifyEmail = () => {
     onSuccess: () => {
       setError("");
       setMessage("New OTP code sent.");
+      localStorage.setItem("pending_register_status", "otp_sent");
+      localStorage.removeItem("pending_register_error");
     },
     onError: (err) => {
       setMessage("");
       setError(err?.response?.data?.message || "Resend failed.");
+      localStorage.setItem("pending_register_status", "failed");
+      localStorage.setItem(
+        "pending_register_error",
+        err?.response?.data?.message || "Resend failed."
+      );
     },
   });
 
@@ -56,6 +105,7 @@ const VerifyEmail = () => {
       setError("Email is required to resend code.");
       return;
     }
+    localStorage.setItem("pending_register_status", "processing");
     resendMutation.mutate({ email });
   };
 
