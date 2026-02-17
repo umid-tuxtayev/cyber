@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { authResetPassword } from "../services/authApi";
 
 const ResetPassword = () => {
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const queryEmail = params.get("email") || "";
   const [email, setEmail] = useState(queryEmail);
@@ -16,9 +17,10 @@ const ResetPassword = () => {
     mutationFn: authResetPassword,
     onSuccess: () => {
       setError("");
-      setMessage("Password successfully reset. You can log in now.");
+      setMessage("");
       setToken("");
       setNewPassword("");
+      navigate("/login", { state: { email }, replace: true });
     },
     onError: (err) => {
       setMessage("");
