@@ -10,6 +10,24 @@ import {
 } from "../services/checkoutApi";
 import { useCart } from "../context/CartContext";
 
+const siteUrl = (
+  import.meta.env.VITE_SITE_URL || "https://umdevc.uz"
+).replace(/\/+$/, "");
+
+const normalizeRedirectUrl = (url) => {
+  if (!url || typeof url !== "string") return "";
+
+  let next = url;
+  next = next.replace(/^http:\/\/localhost:5173/i, siteUrl);
+  next = next.replace(/^http:\/\/127\.0\.0\.1:5173/i, siteUrl);
+
+  const encodedSiteUrl = encodeURIComponent(siteUrl);
+  next = next.replace(/http%3A%2F%2Flocalhost%3A5173/gi, encodedSiteUrl);
+  next = next.replace(/http%3A%2F%2F127\.0\.0\.1%3A5173/gi, encodedSiteUrl);
+
+  return next;
+};
+
 const shippingMeta = {
   free: { label: "Regular shipment", price: 0 },
   express: { label: "Express shipment", price: 8.5 },
@@ -95,7 +113,7 @@ const CheckoutPayment = () => {
           const url =
             session?.url || session?.checkoutUrl || session?.sessionUrl;
           if (url) {
-            window.location.href = url;
+            window.location.href = normalizeRedirectUrl(url);
             return;
           }
         } catch {
