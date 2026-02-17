@@ -10,20 +10,32 @@ import {
 } from "../services/checkoutApi";
 import { useCart } from "../context/CartContext";
 
-const siteUrl = (
-  import.meta.env.VITE_SITE_URL || "https://umdevc.uz"
-).replace(/\/+$/, "");
+const FALLBACK_SITE_URL = "https://umdevc.uz";
+
+const normalizeBaseUrl = (value) => String(value || "").trim().replace(/\/+$/, "");
+const isLocalHostUrl = (value) => /:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(value);
+
+const runtimeOrigin =
+  typeof window !== "undefined" ? normalizeBaseUrl(window.location.origin) : "";
+const envSiteUrl = normalizeBaseUrl(import.meta.env.VITE_SITE_URL);
+const chosenSiteUrl =
+  (runtimeOrigin && !isLocalHostUrl(runtimeOrigin) && runtimeOrigin) ||
+  (envSiteUrl && !isLocalHostUrl(envSiteUrl) && envSiteUrl) ||
+  FALLBACK_SITE_URL;
+const siteUrl = chosenSiteUrl;
 
 const normalizeRedirectUrl = (url) => {
   if (!url || typeof url !== "string") return "";
 
   let next = url;
-  next = next.replace(/^http:\/\/localhost:5173/i, siteUrl);
-  next = next.replace(/^http:\/\/127\.0\.0\.1:5173/i, siteUrl);
+  next = next.replace(/^https?:\/\/localhost:5173/i, siteUrl);
+  next = next.replace(/^https?:\/\/127\.0\.0\.1:5173/i, siteUrl);
 
   const encodedSiteUrl = encodeURIComponent(siteUrl);
   next = next.replace(/http%3A%2F%2Flocalhost%3A5173/gi, encodedSiteUrl);
   next = next.replace(/http%3A%2F%2F127\.0\.0\.1%3A5173/gi, encodedSiteUrl);
+  next = next.replace(/https%3A%2F%2Flocalhost%3A5173/gi, encodedSiteUrl);
+  next = next.replace(/https%3A%2F%2F127\.0\.0\.1%3A5173/gi, encodedSiteUrl);
 
   return next;
 };
@@ -109,7 +121,14 @@ const CheckoutPayment = () => {
 
       if (orderId) {
         try {
-          const session = await stripeMutation.mutateAsync(orderId);
+          const successUrl = `${siteUrl}/orders/success?session_id={CHECKOUT_SESSION_ID}`;
+          const cancelUrl = `${siteUrl}/checkout/payment`;
+          const session = await stripeMutation.mutateAsync({
+            id: orderId,
+            successUrl,
+            cancelUrl,
+            frontendUrl: siteUrl,
+          });
           const url =
             session?.url || session?.checkoutUrl || session?.sessionUrl;
           if (url) {

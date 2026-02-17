@@ -106,8 +106,18 @@ export const getOrderById = async (id) => {
   return unwrap(res.data);
 };
 
-export const createStripeCheckoutSession = async (id) => {
-  const res = await api.post(`/orders/${id}/stripe/checkout-session`);
+export const createStripeCheckoutSession = async (payload) => {
+  const id = typeof payload === "object" ? payload?.id : payload;
+  const body = typeof payload === "object" ? {
+    successUrl: payload?.successUrl,
+    cancelUrl: payload?.cancelUrl,
+    success_url: payload?.successUrl,
+    cancel_url: payload?.cancelUrl,
+    frontendUrl: payload?.frontendUrl,
+    frontend_url: payload?.frontendUrl,
+  } : undefined;
+
+  const res = await api.post(`/orders/${id}/stripe/checkout-session`, body);
   return unwrap(res.data);
 };
 
